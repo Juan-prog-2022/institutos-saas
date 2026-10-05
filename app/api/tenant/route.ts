@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth, currentUser } from "@clerk/nextjs/server";
+import { auth, currentUser, clerkClient } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 import { isSuperAdmin } from "@/lib/auth";
 
@@ -15,11 +15,21 @@ export async function POST() {
 
   const user = await currentUser();
 
+  // Nombre real de la organización (no el slug)
+  let orgName = orgSlug ?? "Mi instituto";
+  try {
+    const client = await clerkClient();
+    const org = await client.organizations.getOrganization({ organizationId: orgId });
+    if (org?.name) orgName = org.name;
+  } catch {
+    // Si falla, usamos el slug como respaldo
+  }
+
   const tenant = await prisma.tenant.upsert({
     where: { clerkOrgId: orgId },
-    update: {},
+    update: { name: orgName, slug: orgSlug ?? orgId },
     create: {
-      name: orgSlug ?? "Mi instituto",
+      name: orgName,
       slug: orgSlug ?? orgId,
       clerkOrgId: orgId,
     },
@@ -43,10 +53,26 @@ export async function POST() {
 }
 
 export async function GET() {
-  const { orgId } = await auth();
+  const { orgId, orgSlug } = await auth();
   const user = await currentUser();
   const superAdmin = isSuperAdmin(user?.emailAddresses[0]?.emailAddress);
   if (!orgId) return NextResponse.json({ tenant: null, isSuperAdmin: superAdmin });
-  const tenant = await prisma.tenant.findUnique({ where: { clerkOrgId: orgId } });
+  let tenant = await prisma.tenant.findUnique({ where: { clerkOrgId: orgId } });
+
+  // Sincroniza el nombre real de la organización si cambió
+  if (tenant) {
+    try {
+      const client = await clerkClient();
+      const org = await client.organizations.getOrganization({ organizationId: orgId });
+      if (org?.name && org.name !== tenant.name) {
+        tenant = await prisma.tenant.update({
+          where: { id: tenant.id },
+          data: { name: org.name, slug: orgSlug ?? tenant.slug },
+        });
+      }
+    } catch {
+      // ignorar
+    }
+  }
   return NextResponse.json({ tenant, isSuperAdmin: superAdmin });
 }

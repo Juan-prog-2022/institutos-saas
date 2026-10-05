@@ -14,6 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { toast } from "react-toastify";
 
 interface Student {
   id: string;
@@ -47,7 +48,7 @@ const selectClass =
 
 export default function DashboardPage() {
   const { organization } = useOrganization();
-  const { tenantId, tenantSlug, setTenant } = useTenantStore();
+  const { setTenant } = useTenantStore();
   const [tenant, setTenantLocal] = useState<{ id: string; name: string; slug: string } | null>(null);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [students, setStudents] = useState<Student[]>([]);
@@ -64,7 +65,6 @@ export default function DashboardPage() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/tenant")
@@ -91,7 +91,7 @@ export default function DashboardPage() {
   async function loadStudents() {
     const res = await fetch("/api/students");
     if (res.ok) setStudents(await res.json());
-    else setError((await res.json()).error);
+    else toast.error((await res.json()).error ?? "Error al cargar estudiantes");
   }
 
   async function loadCourses() {
@@ -115,13 +115,18 @@ export default function DashboardPage() {
     if (res.ok) {
       setTenantLocal(data);
       setTenant(data.id, data.slug);
+      toast.success("Instituto creado correctamente");
     } else {
-      setError(data.error);
+      toast.error(data.error ?? "Error al crear el instituto");
     }
   }
 
   async function addStudent(e: React.FormEvent) {
     e.preventDefault();
+    if (!firstName.trim() || !lastName.trim()) {
+      toast.warn("Nombre y apellido son obligatorios");
+      return;
+    }
     const res = await fetch("/api/students", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -132,13 +137,18 @@ export default function DashboardPage() {
       setLastName("");
       setEmail("");
       loadStudents();
+      toast.success("Estudiante agregado");
     } else {
-      setError((await res.json()).error);
+      toast.error((await res.json()).error ?? "Error al agregar estudiante");
     }
   }
 
   async function addCourse(e: React.FormEvent) {
     e.preventDefault();
+    if (!courseName.trim()) {
+      toast.warn("El nombre del curso es obligatorio");
+      return;
+    }
     const res = await fetch("/api/courses", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -147,37 +157,61 @@ export default function DashboardPage() {
     if (res.ok) {
       setCourseName("");
       loadCourses();
+      toast.success("Curso agregado");
     } else {
-      setError((await res.json()).error);
+      toast.error((await res.json()).error ?? "Error al agregar curso");
     }
   }
 
   async function deleteCourse(id: string) {
-    await fetch(`/api/courses/${id}`, { method: "DELETE" });
-    loadCourses();
+    const res = await fetch(`/api/courses/${id}`, { method: "DELETE" });
+    if (res.ok) {
+      loadCourses();
+      toast.success("Curso eliminado");
+    } else {
+      toast.error("No se pudo eliminar el curso");
+    }
   }
 
   async function addGrade(e: React.FormEvent) {
     e.preventDefault();
+    if (!gradeStudent) {
+      toast.warn("Selecciona un alumno");
+      return;
+    }
+    const value = Number(gradeValue);
+    if (gradeValue === "" || Number.isNaN(value)) {
+      toast.warn("Ingresa una nota válida");
+      return;
+    }
+    if (value < 0 || value > 10) {
+      toast.warn("La nota debe estar entre 0 y 10");
+      return;
+    }
     const res = await fetch("/api/grades", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         studentId: gradeStudent,
         courseId: gradeCourse || null,
-        value: Number(gradeValue),
+        value,
       }),
     });
     if (res.ok) {
       setGradeValue("");
       loadGrades();
+      toast.success("Nota guardada");
     } else {
-      setError((await res.json()).error);
+      toast.error((await res.json()).error ?? "Error al guardar la nota");
     }
   }
 
   async function addAttendance(e: React.FormEvent) {
     e.preventDefault();
+    if (!attStudent) {
+      toast.warn("Selecciona un alumno");
+      return;
+    }
     const res = await fetch("/api/attendances", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -189,8 +223,9 @@ export default function DashboardPage() {
     });
     if (res.ok) {
       loadAttendances();
+      toast.success("Asistencia registrada");
     } else {
-      setError((await res.json()).error);
+      toast.error((await res.json()).error ?? "Error al registrar asistencia");
     }
   }
 
@@ -212,12 +247,6 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      {error && (
-        <p className="mb-4 rounded-md bg-destructive/10 p-3 text-sm text-destructive">
-          {error}
-        </p>
-      )}
-
       {!tenant ? (
         <Card>
           <CardContent className="p-6">
@@ -234,7 +263,7 @@ export default function DashboardPage() {
             <CardHeader>
               <CardTitle>Instituto: {tenant.name}</CardTitle>
               <p className="text-sm text-muted-foreground">
-                slug: <code>{tenantSlug}</code>
+                Bienvenido al panel de gestión de {tenant.name}.
               </p>
             </CardHeader>
             <CardContent>

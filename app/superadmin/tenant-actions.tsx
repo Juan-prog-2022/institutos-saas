@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { toast } from "react-toastify";
 
 export default function TenantActions({
   id,
@@ -13,18 +14,28 @@ export default function TenantActions({
   const router = useRouter();
 
   async function toggleSuspend() {
-    await fetch(`/api/tenants/${id}`, {
+    const res = await fetch(`/api/tenants/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ suspended: !suspended }),
     });
-    router.refresh();
+    if (res.ok) {
+      toast.success(suspended ? "Instituto activado" : "Instituto suspendido");
+      router.refresh();
+    } else {
+      toast.error("No se pudo actualizar el estado");
+    }
   }
 
   async function remove() {
     if (!confirm("¿Eliminar este instituto y todos sus datos?")) return;
-    await fetch(`/api/tenants/${id}`, { method: "DELETE" });
-    router.refresh();
+    const res = await fetch(`/api/tenants/${id}`, { method: "DELETE" });
+    if (res.ok) {
+      toast.success("Instituto eliminado");
+      router.refresh();
+    } else {
+      toast.error("No se pudo eliminar el instituto");
+    }
   }
 
   return (
