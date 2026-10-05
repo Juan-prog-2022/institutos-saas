@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 
 export default function TenantActions({
   id,
@@ -28,18 +29,12 @@ export default function TenantActions({
 
   return (
     <div className="flex gap-2">
-      <button
-        onClick={toggleSuspend}
-        className="rounded-md border px-3 py-1 text-sm hover:bg-zinc-100"
-      >
+      <Button variant="outline" size="sm" onClick={toggleSuspend}>
         {suspended ? "Activar" : "Suspender"}
-      </button>
-      <button
-        onClick={remove}
-        className="rounded-md border border-red-300 px-3 py-1 text-sm text-red-600 hover:bg-red-50"
-      >
+      </Button>
+      <Button variant="destructive" size="sm" onClick={remove}>
         Eliminar
-      </button>
+      </Button>
     </div>
   );
 }

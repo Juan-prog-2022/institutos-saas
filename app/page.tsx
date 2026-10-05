@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export default function Home() {
   return (
@@ -11,18 +12,12 @@ export default function Home() {
         estudiantes, cursos y usuarios.
       </p>
       <div className="flex gap-4">
-        <Link
-          href="/sign-in"
-          className="rounded-lg bg-black px-6 py-3 text-white"
-        >
-          Iniciar sesión
-        </Link>
-        <Link
-          href="/dashboard"
-          className="rounded-lg border px-6 py-3 text-zinc-800"
-        >
-          Ir al dashboard
-        </Link>
+        <Button>
+          <Link href="/sign-in">Iniciar sesión</Link>
+        </Button>
+        <Button variant="outline">
+          <Link href="/dashboard">Ir al dashboard</Link>
+        </Button>
       </div>
     </main>
   );

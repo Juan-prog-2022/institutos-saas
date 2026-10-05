@@ -2,6 +2,14 @@ import { redirect } from "next/navigation";
 import { checkSuperAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import TenantActions from "./tenant-actions";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 export default async function SuperAdminPage() {
   if (!(await checkSuperAdmin())) {
@@ -16,34 +24,34 @@ export default async function SuperAdminPage() {
   return (
     <main className="min-h-screen bg-zinc-50 p-8">
       <h1 className="mb-6 text-2xl font-bold">Super Admin — Institutos</h1>
-      <div className="overflow-x-auto rounded-xl bg-white shadow-sm">
-        <table className="w-full text-sm">
-          <thead className="bg-zinc-100 text-left">
-            <tr>
-              <th className="p-3">Nombre</th>
-              <th className="p-3">Slug</th>
-              <th className="p-3">Org ID</th>
-              <th className="p-3">Alumnos</th>
-              <th className="p-3">Usuarios</th>
-              <th className="p-3">Creado</th>
-              <th className="p-3">Estado</th>
-              <th className="p-3">Acciones</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y">
+      <div className="overflow-x-auto rounded-xl border bg-card shadow-sm">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Nombre</TableHead>
+              <TableHead>Slug</TableHead>
+              <TableHead>Org ID</TableHead>
+              <TableHead>Alumnos</TableHead>
+              <TableHead>Usuarios</TableHead>
+              <TableHead>Creado</TableHead>
+              <TableHead>Estado</TableHead>
+              <TableHead>Acciones</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {tenants.map((t) => (
-              <tr key={t.id}>
-                <td className="p-3">{t.name}</td>
-                <td className="p-3">
+              <TableRow key={t.id}>
+                <TableCell>{t.name}</TableCell>
+                <TableCell>
                   <code>{t.slug}</code>
-                </td>
-                <td className="p-3 text-zinc-500">{t.clerkOrgId}</td>
-                <td className="p-3">{t._count.students}</td>
-                <td className="p-3">{t._count.users}</td>
-                <td className="p-3">
+                </TableCell>
+                <TableCell className="text-muted-foreground">{t.clerkOrgId}</TableCell>
+                <TableCell>{t._count.students}</TableCell>
+                <TableCell>{t._count.users}</TableCell>
+                <TableCell>
                   {t.createdAt.toLocaleDateString("es")}
-                </td>
-                <td className="p-3">
+                </TableCell>
+                <TableCell>
                   {t.suspended ? (
                     <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs text-red-600">
                       Suspendido
@@ -53,21 +61,21 @@ export default async function SuperAdminPage() {
                       Activo
                     </span>
                   )}
-                </td>
-                <td className="p-3">
+                </TableCell>
+                <TableCell>
                   <TenantActions id={t.id} suspended={t.suspended} />
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ))}
             {tenants.length === 0 && (
-              <tr>
-                <td colSpan={8} className="p-4 text-center text-zinc-400">
+              <TableRow>
+                <TableCell colSpan={8} className="text-center text-muted-foreground">
                   No hay institutos registrados.
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             )}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
     </main>
   );

@@ -3,6 +3,17 @@
 import { useEffect, useState } from "react";
 import { OrganizationSwitcher, UserButton, useOrganization } from "@clerk/nextjs";
 import { useTenantStore } from "@/store/useTenantStore";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 interface Student {
   id: string;
@@ -16,6 +27,24 @@ interface Course {
   name: string;
 }
 
+interface Grade {
+  id: string;
+  value: number;
+  student: { firstName: string; lastName: string };
+  course: { name: string } | null;
+}
+
+interface Attendance {
+  id: string;
+  present: boolean;
+  date: string;
+  student: { firstName: string; lastName: string };
+  course: { name: string } | null;
+}
+
+const selectClass =
+  "h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm";
+
 export default function DashboardPage() {
   const { organization } = useOrganization();
   const { tenantId, tenantSlug, setTenant } = useTenantStore();
@@ -24,12 +53,8 @@ export default function DashboardPage() {
   const [students, setStudents] = useState<Student[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
   const [courseName, setCourseName] = useState("");
-  const [grades, setGrades] = useState<
-    { id: string; value: number; student: { firstName: string; lastName: string }; course: { name: string } | null }[]
-  >([]);
-  const [attendances, setAttendances] = useState<
-    { id: string; present: boolean; date: string; student: { firstName: string; lastName: string }; course: { name: string } | null }[]
-  >([]);
+  const [grades, setGrades] = useState<Grade[]>([]);
+  const [attendances, setAttendances] = useState<Attendance[]>([]);
   const [gradeStudent, setGradeStudent] = useState("");
   const [gradeCourse, setGradeCourse] = useState("");
   const [gradeValue, setGradeValue] = useState("");
@@ -41,7 +66,6 @@ export default function DashboardPage() {
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  // Sincronizar el tenant activo y cargarlo en Zustand
   useEffect(() => {
     fetch("/api/tenant")
       .then((r) => r.json())
@@ -64,6 +88,17 @@ export default function DashboardPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tenant]);
 
+  async function loadStudents() {
+    const res = await fetch("/api/students");
+    if (res.ok) setStudents(await res.json());
+    else setError((await res.json()).error);
+  }
+
+  async function loadCourses() {
+    const res = await fetch("/api/courses");
+    if (res.ok) setCourses(await res.json());
+  }
+
   async function loadGrades() {
     const res = await fetch("/api/grades");
     if (res.ok) setGrades(await res.json());
@@ -72,6 +107,54 @@ export default function DashboardPage() {
   async function loadAttendances() {
     const res = await fetch("/api/attendances");
     if (res.ok) setAttendances(await res.json());
+  }
+
+  async function createTenant() {
+    const res = await fetch("/api/tenant", { method: "POST" });
+    const data = await res.json();
+    if (res.ok) {
+      setTenantLocal(data);
+      setTenant(data.id, data.slug);
+    } else {
+      setError(data.error);
+    }
+  }
+
+  async function addStudent(e: React.FormEvent) {
+    e.preventDefault();
+    const res = await fetch("/api/students", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ firstName, lastName, email }),
+    });
+    if (res.ok) {
+      setFirstName("");
+      setLastName("");
+      setEmail("");
+      loadStudents();
+    } else {
+      setError((await res.json()).error);
+    }
+  }
+
+  async function addCourse(e: React.FormEvent) {
+    e.preventDefault();
+    const res = await fetch("/api/courses", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: courseName }),
+    });
+    if (res.ok) {
+      setCourseName("");
+      loadCourses();
+    } else {
+      setError((await res.json()).error);
+    }
+  }
+
+  async function deleteCourse(id: string) {
+    await fetch(`/api/courses/${id}`, { method: "DELETE" });
+    loadCourses();
   }
 
   async function addGrade(e: React.FormEvent) {
@@ -111,72 +194,16 @@ export default function DashboardPage() {
     }
   }
 
-  async function loadCourses() {
-    const res = await fetch("/api/courses");
-    if (res.ok) setCourses(await res.json());
-  }
-
-  async function addCourse(e: React.FormEvent) {
-    e.preventDefault();
-    const res = await fetch("/api/courses", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: courseName }),
-    });
-    if (res.ok) {
-      setCourseName("");
-      loadCourses();
-    } else {
-      setError((await res.json()).error);
-    }
-  }
-
-  async function deleteCourse(id: string) {
-    await fetch(`/api/courses/${id}`, { method: "DELETE" });
-    loadCourses();
-  }
-
-  async function loadStudents() {
-    const res = await fetch("/api/students");
-    if (res.ok) setStudents(await res.json());
-    else setError((await res.json()).error);
-  }
-
-  async function createTenant() {
-    const res = await fetch("/api/tenant", { method: "POST" });
-    const data = await res.json();
-    if (res.ok) {
-      setTenantLocal(data);
-      setTenant(data.id, data.slug);
-    } else {
-      setError(data.error);
-    }
-  }
-
-  async function addStudent(e: React.FormEvent) {
-    e.preventDefault();
-    const res = await fetch("/api/students", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ firstName, lastName, email }),
-    });
-    if (res.ok) {
-      setFirstName("");
-      setLastName("");
-      setEmail("");
-      loadStudents();
-    } else {
-      setError((await res.json()).error);
-    }
-  }
-
   return (
-    <div className="min-h-screen bg-zinc-50 p-8 text-zinc-900">
-      <header className="mb-8 flex items-center justify-between rounded-xl bg-white p-4 shadow-sm">
+    <div className="min-h-screen bg-muted/40 p-8">
+      <header className="mb-8 flex items-center justify-between rounded-xl border bg-card p-4 shadow-sm">
         <h1 className="text-xl font-semibold">🏫 Panel del instituto</h1>
         <div className="flex items-center gap-4">
           {isSuperAdmin && (
-            <a href="/superadmin" className="rounded-lg bg-zinc-900 px-3 py-1.5 text-sm text-white">
+            <a
+              href="/superadmin"
+              className="rounded-md bg-primary px-3 py-1.5 text-sm text-primary-foreground"
+            >
               ⚙️ Superadmin
             </a>
           )}
@@ -186,220 +213,259 @@ export default function DashboardPage() {
       </header>
 
       {error && (
-        <p className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-600">{error}</p>
+        <p className="mb-4 rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+          {error}
+        </p>
       )}
 
       {!tenant ? (
-        <div className="rounded-xl bg-white p-6 shadow-sm">
-          <p className="mb-4">
-            No hay instituto registrado para tu organización actual. Créalo para
-            empezar.
-          </p>
-          <button
-            onClick={createTenant}
-            className="rounded-lg bg-black px-4 py-2 text-white"
-          >
-            Crear instituto
-          </button>
-        </div>
+        <Card>
+          <CardContent className="p-6">
+            <p className="mb-4">
+              No hay instituto registrado para tu organización actual. Créalo
+              para empezar.
+            </p>
+            <Button onClick={createTenant}>Crear instituto</Button>
+          </CardContent>
+        </Card>
       ) : (
         <div className="grid gap-6 md:grid-cols-2">
-          <section className="rounded-xl bg-white p-6 shadow-sm">
-            <h2 className="mb-1 text-lg font-semibold">Instituto: {tenant.name}</h2>
-            <p className="mb-4 text-sm text-zinc-500">
-              tenantId (Zustand): <code>{tenantId}</code> · slug:{" "}
-              <code>{tenantSlug}</code>
-            </p>
-            <form onSubmit={addStudent} className="flex flex-col gap-3">
-              <h3 className="font-medium">Agregar estudiante</h3>
-              <input
-                className="rounded-lg border p-2"
-                placeholder="Nombre"
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-              />
-              <input
-                className="rounded-lg border p-2"
-                placeholder="Apellido"
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-              />
-              <input
-                className="rounded-lg border p-2"
-                placeholder="Email (opcional)"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-              <button className="rounded-lg bg-black px-4 py-2 text-white">
-                Agregar estudiante
-              </button>
-            </form>
-          </section>
-
-          <section className="rounded-xl bg-white p-6 shadow-sm">
-            <h2 className="mb-4 text-lg font-semibold">
-              Estudiantes ({students.length})
-            </h2>
-            <ul className="divide-y">
-              {students.map((s) => (
-                <li key={s.id} className="py-2">
-                  {s.firstName} {s.lastName}
-                  {s.email && (
-                    <span className="ml-2 text-sm text-zinc-400">{s.email}</span>
-                  )}
-                </li>
-              ))}
-              {students.length === 0 && (
-                <li className="py-2 text-zinc-400">Sin estudiantes aún.</li>
-              )}
-            </ul>
-          </section>
-
-          <section className="rounded-xl bg-white p-6 shadow-sm">
-            <h2 className="mb-4 text-lg font-semibold">
-              Cursos ({courses.length})
-            </h2>
-            <form onSubmit={addCourse} className="mb-4 flex gap-2">
-              <input
-                className="flex-1 rounded-lg border p-2"
-                placeholder="Nombre del curso"
-                value={courseName}
-                onChange={(e) => setCourseName(e.target.value)}
-              />
-              <button className="rounded-lg bg-black px-4 py-2 text-white">
-                Agregar
-              </button>
-            </form>
-            <ul className="divide-y">
-              {courses.map((c) => (
-                <li key={c.id} className="flex items-center justify-between py-2">
-                  {c.name}
-                  <button
-                    onClick={() => deleteCourse(c.id)}
-                    className="text-sm text-red-500 hover:underline"
-                  >
-                    Eliminar
-                  </button>
-                </li>
-              ))}
-              {courses.length === 0 && (
-                <li className="py-2 text-zinc-400">Sin cursos aún.</li>
-              )}
-            </ul>
-          </section>
-
-          <section className="rounded-xl bg-white p-6 shadow-sm">
-            <h2 className="mb-4 text-lg font-semibold">Notas ({grades.length})</h2>
-            <form onSubmit={addGrade} className="mb-4 flex flex-col gap-2">
-              <select
-                className="rounded-lg border p-2"
-                value={gradeStudent}
-                onChange={(e) => setGradeStudent(e.target.value)}
-              >
-                <option value="">Selecciona alumno</option>
-                {students.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.firstName} {s.lastName}
-                  </option>
-                ))}
-              </select>
-              <select
-                className="rounded-lg border p-2"
-                value={gradeCourse}
-                onChange={(e) => setGradeCourse(e.target.value)}
-              >
-                <option value="">Curso (opcional)</option>
-                {courses.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
-              <input
-                className="rounded-lg border p-2"
-                placeholder="Nota (ej. 9.5)"
-                type="number"
-                step="0.1"
-                value={gradeValue}
-                onChange={(e) => setGradeValue(e.target.value)}
-              />
-              <button className="rounded-lg bg-black px-4 py-2 text-white">
-                Guardar nota
-              </button>
-            </form>
-            <ul className="divide-y">
-              {grades.map((g) => (
-                <li key={g.id} className="py-2">
-                  <span className="font-medium">{g.value}</span> —{" "}
-                  {g.student.firstName} {g.student.lastName}
-                  {g.course && (
-                    <span className="ml-2 text-sm text-zinc-400">{g.course.name}</span>
-                  )}
-                </li>
-              ))}
-              {grades.length === 0 && (
-                <li className="py-2 text-zinc-400">Sin notas aún.</li>
-              )}
-            </ul>
-          </section>
-
-          <section className="rounded-xl bg-white p-6 shadow-sm">
-            <h2 className="mb-4 text-lg font-semibold">
-              Asistencias ({attendances.length})
-            </h2>
-            <form onSubmit={addAttendance} className="mb-4 flex flex-col gap-2">
-              <select
-                className="rounded-lg border p-2"
-                value={attStudent}
-                onChange={(e) => setAttStudent(e.target.value)}
-              >
-                <option value="">Selecciona alumno</option>
-                {students.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.firstName} {s.lastName}
-                  </option>
-                ))}
-              </select>
-              <select
-                className="rounded-lg border p-2"
-                value={attCourse}
-                onChange={(e) => setAttCourse(e.target.value)}
-              >
-                <option value="">Curso (opcional)</option>
-                {courses.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
-              <label className="flex items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={attPresent}
-                  onChange={(e) => setAttPresent(e.target.checked)}
+          <Card>
+            <CardHeader>
+              <CardTitle>Instituto: {tenant.name}</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                slug: <code>{tenantSlug}</code>
+              </p>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={addStudent} className="flex flex-col gap-3">
+                <h3 className="font-medium">Agregar estudiante</h3>
+                <Input
+                  placeholder="Nombre"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
                 />
-                Presente
-              </label>
-              <button className="rounded-lg bg-black px-4 py-2 text-white">
-                Registrar asistencia
-              </button>
-            </form>
-            <ul className="divide-y">
-              {attendances.map((a) => (
-                <li key={a.id} className="py-2">
-                  {a.present ? "✅" : "❌"} {a.student.firstName}{" "}
-                  {a.student.lastName}
-                  <span className="ml-2 text-sm text-zinc-400">
-                    {new Date(a.date).toLocaleDateString("es")}
-                    {a.course ? ` · ${a.course.name}` : ""}
-                  </span>
-                </li>
-              ))}
-              {attendances.length === 0 && (
-                <li className="py-2 text-zinc-400">Sin registros aún.</li>
-              )}
-            </ul>
-          </section>
+                <Input
+                  placeholder="Apellido"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                />
+                <Input
+                  placeholder="Email (opcional)"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+                <Button type="submit">Agregar estudiante</Button>
+              </form>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Estudiantes ({students.length})</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Nombre</TableHead>
+                    <TableHead>Email</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {students.map((s) => (
+                    <TableRow key={s.id}>
+                      <TableCell>
+                        {s.firstName} {s.lastName}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {s.email ?? "—"}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {students.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={2} className="text-center text-muted-foreground">
+                        Sin estudiantes aún.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Cursos ({courses.length})</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={addCourse} className="mb-4 flex gap-2">
+                <Input
+                  placeholder="Nombre del curso"
+                  value={courseName}
+                  onChange={(e) => setCourseName(e.target.value)}
+                />
+                <Button type="submit">Agregar</Button>
+              </form>
+              <Table>
+                <TableBody>
+                  {courses.map((c) => (
+                    <TableRow key={c.id}>
+                      <TableCell>{c.name}</TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-destructive"
+                          onClick={() => deleteCourse(c.id)}
+                        >
+                          Eliminar
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {courses.length === 0 && (
+                    <TableRow>
+                      <TableCell className="text-center text-muted-foreground">
+                        Sin cursos aún.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Notas ({grades.length})</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={addGrade} className="mb-4 flex flex-col gap-2">
+                <select
+                  className={selectClass}
+                  value={gradeStudent}
+                  onChange={(e) => setGradeStudent(e.target.value)}
+                >
+                  <option value="">Selecciona alumno</option>
+                  {students.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.firstName} {s.lastName}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  className={selectClass}
+                  value={gradeCourse}
+                  onChange={(e) => setGradeCourse(e.target.value)}
+                >
+                  <option value="">Curso (opcional)</option>
+                  {courses.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+                <Input
+                  placeholder="Nota (ej. 9.5)"
+                  type="number"
+                  step="0.1"
+                  value={gradeValue}
+                  onChange={(e) => setGradeValue(e.target.value)}
+                />
+                <Button type="submit">Guardar nota</Button>
+              </form>
+              <Table>
+                <TableBody>
+                  {grades.map((g) => (
+                    <TableRow key={g.id}>
+                      <TableCell className="font-medium">{g.value}</TableCell>
+                      <TableCell>
+                        {g.student.firstName} {g.student.lastName}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {g.course?.name ?? "—"}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {grades.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={3} className="text-center text-muted-foreground">
+                        Sin notas aún.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Asistencias ({attendances.length})</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={addAttendance} className="mb-4 flex flex-col gap-2">
+                <select
+                  className={selectClass}
+                  value={attStudent}
+                  onChange={(e) => setAttStudent(e.target.value)}
+                >
+                  <option value="">Selecciona alumno</option>
+                  {students.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.firstName} {s.lastName}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  className={selectClass}
+                  value={attCourse}
+                  onChange={(e) => setAttCourse(e.target.value)}
+                >
+                  <option value="">Curso (opcional)</option>
+                  {courses.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+                <label className="flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={attPresent}
+                    onChange={(e) => setAttPresent(e.target.checked)}
+                  />
+                  Presente
+                </label>
+                <Button type="submit">Registrar asistencia</Button>
+              </form>
+              <Table>
+                <TableBody>
+                  {attendances.map((a) => (
+                    <TableRow key={a.id}>
+                      <TableCell>{a.present ? "✅" : "❌"}</TableCell>
+                      <TableCell>
+                        {a.student.firstName} {a.student.lastName}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {new Date(a.date).toLocaleDateString("es")}
+                        {a.course ? ` · ${a.course.name}` : ""}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {attendances.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={3} className="text-center text-muted-foreground">
+                        Sin registros aún.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
         </div>
       )}
     </div>
