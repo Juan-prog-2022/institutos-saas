@@ -232,7 +232,19 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-muted/40 p-8">
       <header className="mb-8 flex items-center justify-between rounded-xl border bg-card p-4 shadow-sm">
-        <h1 className="text-xl font-semibold">🏫 Panel del instituto</h1>
+        <div className="flex items-center gap-3">
+          {organization?.imageUrl && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={organization.imageUrl}
+              alt={organization.name ?? "Logo del instituto"}
+              className="h-9 w-9 rounded-full object-cover"
+            />
+          )}
+          <h1 className="text-xl font-semibold">
+            {organization?.name ?? "Panel del instituto"}
+          </h1>
+        </div>
         <div className="flex items-center gap-4">
           {isSuperAdmin && (
             <a
@@ -294,6 +306,7 @@ export default function DashboardPage() {
               <CardTitle>Estudiantes ({students.length})</CardTitle>
             </CardHeader>
             <CardContent>
+              <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -321,6 +334,7 @@ export default function DashboardPage() {
                   )}
                 </TableBody>
               </Table>
+              </div>
             </CardContent>
           </Card>
 
@@ -337,6 +351,7 @@ export default function DashboardPage() {
                 />
                 <Button type="submit">Agregar</Button>
               </form>
+              <div className="overflow-x-auto">
               <Table>
                 <TableBody>
                   {courses.map((c) => (
@@ -363,6 +378,7 @@ export default function DashboardPage() {
                   )}
                 </TableBody>
               </Table>
+              </div>
             </CardContent>
           </Card>
 
@@ -405,6 +421,7 @@ export default function DashboardPage() {
                 />
                 <Button type="submit">Guardar nota</Button>
               </form>
+              <div className="overflow-x-auto">
               <Table>
                 <TableBody>
                   {grades.map((g) => (
@@ -427,6 +444,7 @@ export default function DashboardPage() {
                   )}
                 </TableBody>
               </Table>
+              </div>
             </CardContent>
           </Card>
 
@@ -470,6 +488,7 @@ export default function DashboardPage() {
                 </label>
                 <Button type="submit">Registrar asistencia</Button>
               </form>
+              <div className="overflow-x-auto">
               <Table>
                 <TableBody>
                   {attendances.map((a) => (
@@ -493,6 +512,7 @@ export default function DashboardPage() {
                   )}
                 </TableBody>
               </Table>
+              </div>
             </CardContent>
           </Card>
         </div>
