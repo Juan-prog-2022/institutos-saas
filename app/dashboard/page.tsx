@@ -241,6 +241,28 @@ export default function DashboardPage() {
               className="h-9 w-9 rounded-full object-cover"
             />
           )}
+          <label className="cursor-pointer rounded-md border px-3 py-1.5 text-sm hover:bg-muted">
+            Cambiar logo
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                const fd = new FormData();
+                fd.append("file", file);
+                const res = await fetch("/api/tenant/logo", { method: "POST", body: fd });
+                if (res.ok) {
+                  toast.success("Logo actualizado");
+                  await organization?.reload();
+                } else {
+                  toast.error((await res.json()).error ?? "Error al subir el logo");
+                }
+                e.target.value = "";
+              }}
+            />
+          </label>
           <h1 className="text-xl font-semibold">
             {organization?.name ?? "Panel del instituto"}
           </h1>
