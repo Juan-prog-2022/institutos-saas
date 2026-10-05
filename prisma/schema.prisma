@@ -42,6 +42,8 @@ model Student {
   tenantId  String
   tenant    Tenant   @relation(fields: [tenantId], references: [id])
   createdAt DateTime @default(now())
+  grades    Grade[]
+  attendances Attendance[]
 
   @@index([tenantId])
 }
@@ -52,6 +54,34 @@ model Course {
   tenantId  String
   tenant    Tenant   @relation(fields: [tenantId], references: [id])
   createdAt DateTime @default(now())
+  grades    Grade[]
+  attendances Attendance[]
+
+  @@index([tenantId])
+}
+
+model Grade {
+  id        String   @id @default(cuid())
+  value     Float
+  studentId String
+  student   Student  @relation(fields: [studentId], references: [id])
+  courseId  String?
+  course    Course?  @relation(fields: [courseId], references: [id])
+  tenantId  String
+  createdAt DateTime @default(now())
+
+  @@index([tenantId])
+}
+
+model Attendance {
+  id        String   @id @default(cuid())
+  date      DateTime @default(now())
+  present   Boolean
+  studentId String
+  student   Student  @relation(fields: [studentId], references: [id])
+  courseId  String?
+  course    Course?  @relation(fields: [courseId], references: [id])
+  tenantId  String
 
   @@index([tenantId])
 }
