@@ -34,7 +34,7 @@ export default function CalificacionesPage() {
   return (
     <div className="p-6">
       {/* FIXED SELECT */}
-      <Select value={selectedCourse} onValueChange={(v: string) => setSelectedCourse(v)}>
+      <Select value={selectedCourse} onValueChange={(v) => setSelectedCourse(v ?? "")}>
         <SelectTrigger className="w-56 bg-white"><SelectValue placeholder="Select course" /></SelectTrigger>
         <SelectContent>
           {courses.map(c=><SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
