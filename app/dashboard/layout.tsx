@@ -8,7 +8,7 @@ export default function DashboardLayout({
   return (
     <div className="min-h-screen bg-gray-50">
       {/* En PC podés después agregar un sidebar acá si querés */}
-      <div className="mx-auto max-w-6xl p-4 pb-24 md:p-8">
+      <div className="mx-auto max-w-6xl p-3 pb-24 sm:p-4 md:p-8">
         {children}
       </div>
       

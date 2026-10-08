@@ -22,8 +22,8 @@ export default async function SuperAdminPage() {
   });
 
   return (
-    <main className="min-h-screen bg-zinc-50 p-8">
-      <h1 className="mb-6 text-2xl font-bold">Super Admin — Institutos</h1>
+    <main className="min-h-screen bg-zinc-50 p-4 sm:p-8">
+      <h1 className="mb-4 text-xl font-bold sm:mb-6 sm:text-2xl">Super Admin — Institutos</h1>
       <div className="overflow-x-auto rounded-xl border bg-card shadow-sm">
         <Table>
           <TableHeader>
