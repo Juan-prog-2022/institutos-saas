@@ -1,36 +1,34 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { getCurrentTenant } from "@/lib/tenant";
+import { auth, currentUser } from "@clerk/nextjs/server"
+import { prisma } from "@/lib/prisma"
+import { isSuperAdmin } from "@/lib/auth"
+import { NextResponse } from "next/server"
 
 export async function GET() {
-  try {
-    const tenant = await getCurrentTenant();
-    const courses = await prisma.course.findMany({
-      where: { tenantId: tenant.id },
-      orderBy: { createdAt: "desc" },
-    });
-    return NextResponse.json(courses);
-  } catch (e) {
-    const message = e instanceof Error ? e.message : "Error";
-    return NextResponse.json({ error: message }, { status: 401 });
+  const { orgId } = await auth()
+  const user = await currentUser()
+  const email = user?.emailAddresses[0]?.emailAddress?? ""
+  const superAdmin = isSuperAdmin(email)
+
+  // 1. Superadmin sin org? Ve todo
+  if (superAdmin &&!orgId) {
+    const all = await prisma.course.findMany()
+    return NextResponse.json(all)
   }
-}
 
-export async function POST(request: Request) {
-  try {
-    const tenant = await getCurrentTenant();
-    const { name } = await request.json();
+  // 2. Instituto normal: busca su tenant
+  if (!orgId) return NextResponse.json([])
 
-    if (!name || typeof name !== "string") {
-      return NextResponse.json({ error: "El nombre es requerido" }, { status: 400 });
-    }
+  const tenant = await prisma.tenant.findUnique({
+    where: { clerkOrgId: orgId }
+  })
+  if (!tenant) return NextResponse.json([])
 
-    const course = await prisma.course.create({
-      data: { name, tenantId: tenant.id },
-    });
-    return NextResponse.json(course, { status: 201 });
-  } catch (e) {
-    const message = e instanceof Error ? e.message : "Error";
-    return NextResponse.json({ error: message }, { status: 401 });
-  }
+  // 3. FILTRO REAL por tenantId
+  const where = superAdmin? {} : { tenantId: tenant.id }
+
+  const courses = await prisma.course.findMany({
+    where,
+    orderBy: { name: 'asc' }
+  })
+  return NextResponse.json(courses)
 }
