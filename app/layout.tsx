@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Sistema para Institutos",
+  title: "Sistema de gestión de institutos",
   description: "SaaS multitenant para gestión de institutos: estudiantes, cursos y usuarios",
   appleWebApp: {
     capable: true,

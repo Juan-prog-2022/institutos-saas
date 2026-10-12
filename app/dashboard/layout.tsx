@@ -1,19 +1,12 @@
-import { MobileNav } from "@/components/mobile-nav"
+import { Toaster } from "@/components/ui/sonner"
 
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* En PC podés después agregar un sidebar acá si querés */}
-      <div className="mx-auto max-w-6xl p-3 pb-24 sm:p-4 md:p-8">
+    <html lang="es">
+      <body>
         {children}
-      </div>
-      
-      {/* El bottom nav que ya creaste */}
-      <MobileNav />
-    </div>
+        <Toaster richColors position="bottom-right" />
+      </body>
+    </html>
   )
 }
