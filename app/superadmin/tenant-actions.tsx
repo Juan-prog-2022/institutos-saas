@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 
 export default function TenantActions({
   id,
@@ -14,26 +14,29 @@ export default function TenantActions({
   const router = useRouter();
 
   async function toggleSuspend() {
-    const res = await fetch(`/api/tenants/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ suspended: !suspended }),
-    });
-    if (res.ok) {
+    try {
+      const res = await fetch(`/api/tenants/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ suspended: !suspended }),
+      });
+      if (!res.ok) throw new Error("No se pudo actualizar el estado");
       toast.success(suspended ? "Instituto activado" : "Instituto suspendido");
       router.refresh();
-    } else {
+    } catch {
       toast.error("No se pudo actualizar el estado");
     }
   }
 
   async function remove() {
     if (!confirm("¿Eliminar este instituto y todos sus datos?")) return;
-    const res = await fetch(`/api/tenants/${id}`, { method: "DELETE" });
-    if (res.ok) {
+
+    try {
+      const res = await fetch(`/api/tenants/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("No se pudo eliminar el instituto");
       toast.success("Instituto eliminado");
       router.refresh();
-    } else {
+    } catch {
       toast.error("No se pudo eliminar el instituto");
     }
   }

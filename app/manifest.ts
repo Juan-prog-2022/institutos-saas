@@ -6,7 +6,9 @@ export default function manifest(): MetadataRoute.Manifest {
     short_name: "Institutos",
     description:
       "SaaS multitenant para gestión de institutos: estudiantes, cursos y usuarios",
+    id: "/",
     start_url: "/",
+    scope: "/",
     display: "standalone",
     background_color: "#ffffff",
     theme_color: "#4f46e5",

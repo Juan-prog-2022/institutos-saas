@@ -1,12 +1,14 @@
-import { Toaster } from "@/components/ui/sonner"
+import { MobileNav } from "@/components/mobile-nav";
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <html lang="es">
-      <body>
-        {children}
-        <Toaster richColors position="bottom-right" />
-      </body>
-    </html>
-  )
+    <>
+      {children}
+      <MobileNav />
+    </>
+  );
 }

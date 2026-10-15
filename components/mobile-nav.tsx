@@ -5,7 +5,7 @@ import { Home, BookOpen, ClipboardList, User } from "lucide-react"
 
 const items = [
   { href: "/dashboard", label: "Inicio", icon: Home },
-  { href: "/dashboard/cursos", label: "Cursos", icon: BookOpen },
+  { href: "/dashboard/courses", label: "Cursos", icon: BookOpen },
   { href: "/dashboard/calificaciones", label: "Notas", icon: ClipboardList },
   { href: "/dashboard/perfil", label: "Perfil", icon: User },
 ]
