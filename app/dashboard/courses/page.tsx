@@ -96,17 +96,24 @@ export default function CoursesPage() {
   }
 
   return (
-    <main className="space-y-6 p-4 pb-28 sm:p-6">
+    <main className="mx-auto w-full max-w-7xl space-y-7 px-4 py-7 pb-28 sm:px-6 md:pb-10 lg:px-8">
       <header>
-        <h1 className="text-2xl font-bold">Cursos</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
+        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-indigo-600">
+          Gestión académica
+        </p>
+        <h1 className="mt-2 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+          Cursos
+        </h1>
+        <p className="mt-2 text-sm text-slate-500">
           Administrá los cursos de tu instituto.
         </p>
       </header>
 
-      <Card>
+      <Card className="rounded-2xl border-0 bg-white shadow-sm ring-1 ring-slate-200/80">
         <CardHeader>
-          <CardTitle>Agregar curso</CardTitle>
+          <CardTitle className="font-semibold text-slate-900">
+            Agregar curso
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <form
@@ -130,7 +137,7 @@ export default function CoursesPage() {
       </Card>
 
       <section aria-busy={loading} aria-labelledby="courses-heading">
-        <h2 className="mb-3 text-lg font-semibold" id="courses-heading">
+        <h2 className="mb-3 text-lg font-semibold text-slate-900" id="courses-heading">
           Cursos existentes
         </h2>
 
@@ -151,7 +158,7 @@ export default function CoursesPage() {
           <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {courses.map((course) => (
               <li key={course.id}>
-                <Card className="flex-row items-center justify-between p-4">
+                <Card className="flex-row items-center justify-between rounded-2xl border-0 bg-white p-4 shadow-sm ring-1 ring-slate-200/80">
                   <span className="font-medium">{course.name}</span>
                   <Button
                     aria-label={`Eliminar curso ${course.name}`}

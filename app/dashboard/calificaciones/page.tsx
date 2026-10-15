@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { ClipboardList } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Select,
@@ -81,16 +82,22 @@ export default function CalificacionesPage() {
   }, [selectedCourse]);
 
   return (
-    <main className="space-y-6 p-4 pb-28 sm:p-6">
+    <main className="mx-auto w-full max-w-7xl space-y-7 px-4 py-7 pb-28 sm:px-6 md:pb-10 lg:px-8">
       <header>
-        <h1 className="text-2xl font-bold">Notas</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
+        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-indigo-600">
+          Gestión académica
+        </p>
+        <h1 className="mt-2 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+          Notas
+        </h1>
+        <p className="mt-2 text-sm text-slate-500">
           Consultá las notas registradas por curso.
         </p>
       </header>
 
-      <div className="max-w-md space-y-2">
-        <label className="text-sm font-medium" htmlFor="grade-course">
+      <Card className="max-w-xl rounded-2xl border-0 bg-white shadow-sm ring-1 ring-slate-200/80">
+        <CardContent className="space-y-2 p-5">
+        <label className="text-sm font-semibold text-slate-700" htmlFor="grade-course">
           Curso
         </label>
         <Select
@@ -129,22 +136,37 @@ export default function CalificacionesPage() {
           </p>
         )}
         {!loadingCourses && !coursesFailed && courses.length === 0 && (
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-slate-500">
             Primero creá un curso para consultar sus notas.
           </p>
         )}
-      </div>
+        </CardContent>
+      </Card>
 
       {loadingGrades ? (
-        <p aria-live="polite" className="text-sm text-muted-foreground">
+        <p aria-live="polite" className="text-sm text-slate-500">
           Cargando notas...
         </p>
       ) : selectedCourse && gradesFailed ? (
         <p role="alert" className="text-sm text-destructive">
           No se pudieron obtener las notas de este curso.
         </p>
+      ) : !selectedCourse ? (
+        <Card className="rounded-2xl border-0 bg-white shadow-sm ring-1 ring-slate-200/80">
+          <CardContent className="flex flex-col items-center px-6 py-12 text-center">
+            <span className="flex size-12 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600">
+              <ClipboardList aria-hidden="true" className="size-5" />
+            </span>
+            <h2 className="mt-4 font-semibold text-slate-800">
+              Seleccioná un curso
+            </h2>
+            <p className="mt-1 max-w-sm text-sm text-slate-500">
+              Elegí un curso arriba para consultar las calificaciones de sus alumnos.
+            </p>
+          </CardContent>
+        </Card>
       ) : selectedCourse && rows.length === 0 ? (
-        <Card>
+        <Card className="rounded-2xl border-0 bg-white shadow-sm ring-1 ring-slate-200/80">
           <CardContent className="py-6 text-sm text-muted-foreground">
             Este curso todavía no tiene notas registradas.
           </CardContent>
@@ -157,10 +179,10 @@ export default function CalificacionesPage() {
 
           <div className="grid gap-3 md:hidden">
             {rows.map((row) => (
-              <Card key={row.id}>
+              <Card className="rounded-2xl border-0 bg-white shadow-sm ring-1 ring-slate-200/80" key={row.id}>
                 <CardContent className="flex items-center justify-between py-4">
-                  <span className="font-medium">{row.studentName}</span>
-                  <span aria-label={`Nota ${row.grade}`}>
+                  <span className="font-medium text-slate-800">{row.studentName}</span>
+                  <span aria-label={`Nota ${row.grade}`} className="rounded-lg bg-indigo-50 px-3 py-1.5 font-bold text-indigo-700">
                     {row.grade.toLocaleString("es-AR")}
                   </span>
                 </CardContent>
@@ -168,24 +190,26 @@ export default function CalificacionesPage() {
             ))}
           </div>
 
-          <div className="hidden overflow-x-auto rounded-lg border md:block">
+          <div className="hidden overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/80 md:block">
             <table className="w-full text-left text-sm">
-              <thead className="bg-muted/50">
+              <thead className="bg-slate-50 text-slate-500">
                 <tr>
-                  <th className="px-4 py-3 font-medium" scope="col">
+                  <th className="px-5 py-4 font-semibold" scope="col">
                     Alumno
                   </th>
-                  <th className="px-4 py-3 font-medium" scope="col">
+                  <th className="px-5 py-4 font-semibold" scope="col">
                     Nota
                   </th>
                 </tr>
               </thead>
               <tbody>
                 {rows.map((row) => (
-                  <tr className="border-t" key={row.id}>
-                    <td className="px-4 py-3">{row.studentName}</td>
-                    <td className="px-4 py-3">
-                      {row.grade.toLocaleString("es-AR")}
+                  <tr className="border-t border-slate-100" key={row.id}>
+                    <td className="px-5 py-4 font-medium text-slate-800">{row.studentName}</td>
+                    <td className="px-5 py-4">
+                      <span className="rounded-lg bg-indigo-50 px-3 py-1.5 font-bold text-indigo-700">
+                        {row.grade.toLocaleString("es-AR")}
+                      </span>
                     </td>
                   </tr>
                 ))}
