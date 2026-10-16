@@ -1,4 +1,5 @@
 import { MobileNav } from "@/components/mobile-nav";
+import { LogoutButton } from "@/components/logout-button";
 
 export default function DashboardLayout({
   children,
@@ -15,9 +16,12 @@ export default function DashboardLayout({
             <span aria-hidden="true" className="text-slate-300">/</span>
             <span className="truncate text-slate-500">Administración</span>
           </div>
-          <div className="ml-auto flex items-center gap-2 rounded-full border border-emerald-100 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">
-            <span aria-hidden="true" className="size-1.5 rounded-full bg-emerald-500" />
-            Panel del instituto
+          <div className="ml-auto flex items-center gap-2">
+            <div className="hidden items-center gap-2 rounded-full border border-emerald-100 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700 sm:flex">
+              <span aria-hidden="true" className="size-1.5 rounded-full bg-emerald-500" />
+              Panel del instituto
+            </div>
+            <LogoutButton />
           </div>
         </header>
         {children}

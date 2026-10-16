@@ -379,10 +379,16 @@ export default function DashboardPage() {
               title="Administrar cursos"
             />
             <QuickLink
-              description="Consultá las calificaciones por curso"
+              description="Creá, editá y eliminá calificaciones"
               href="/dashboard/calificaciones"
               icon={ClipboardList}
-              title="Ver calificaciones"
+              title="Administrar notas"
+            />
+            <QuickLink
+              description="Gestioná el registro de alumnos del instituto"
+              href="/dashboard/students"
+              icon={Users}
+              title="Administrar alumnos"
             />
             <div className="rounded-xl bg-slate-50 px-4 py-3">
               <p className="text-xs font-medium text-slate-600">

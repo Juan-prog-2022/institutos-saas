@@ -2,11 +2,18 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookOpen, ClipboardList, GraduationCap, Home } from "lucide-react";
+import {
+  BookOpen,
+  ClipboardList,
+  GraduationCap,
+  Home,
+  Users,
+} from "lucide-react";
 
 const items = [
   { href: "/dashboard", label: "Inicio", icon: Home },
   { href: "/dashboard/courses", label: "Cursos", icon: BookOpen },
+  { href: "/dashboard/students", label: "Alumnos", icon: Users },
   { href: "/dashboard/calificaciones", label: "Notas", icon: ClipboardList },
 ];
 
