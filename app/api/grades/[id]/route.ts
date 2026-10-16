@@ -29,27 +29,29 @@ export async function PATCH(request: Request, { params }: Params) {
       );
     }
 
-    const [student, course] = await Promise.all([
-      prisma.student.findFirst({
-        where: { id: body.studentId, tenantId: tenant.id },
-        select: { id: true },
-      }),
-      prisma.course.findFirst({
-        where: { id: body.courseId, tenantId: tenant.id },
-        select: { id: true },
-      }),
-    ]);
+    const enrollment = await prisma.enrollment.findFirst({
+      where: {
+        studentId: body.studentId,
+        courseId: body.courseId,
+        tenantId: tenant.id,
+      },
+      select: { studentId: true, courseId: true },
+    });
 
-    if (!student || !course) {
+    if (!enrollment) {
       return NextResponse.json(
-        { error: "El alumno o el curso no pertenece a tu instituto" },
+        { error: "Asigná primero el alumno a este curso" },
         { status: 400 }
       );
     }
 
     const updated = await prisma.grade.updateMany({
       where: { id, tenantId: tenant.id },
-      data: { studentId: student.id, courseId: course.id, value: body.value },
+      data: {
+        studentId: enrollment.studentId,
+        courseId: enrollment.courseId,
+        value: body.value,
+      },
     });
 
     if (updated.count === 0) {

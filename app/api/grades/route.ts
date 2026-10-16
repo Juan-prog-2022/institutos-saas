@@ -67,28 +67,26 @@ export async function POST(request: Request) {
       );
     }
 
-    const [student, course] = await Promise.all([
-      prisma.student.findFirst({
-        where: { id: body.studentId, tenantId: tenant.id },
-        select: { id: true },
-      }),
-      prisma.course.findFirst({
-        where: { id: body.courseId, tenantId: tenant.id },
-        select: { id: true },
-      }),
-    ]);
+    const enrollment = await prisma.enrollment.findFirst({
+      where: {
+        studentId: body.studentId,
+        courseId: body.courseId,
+        tenantId: tenant.id,
+      },
+      select: { studentId: true, courseId: true },
+    });
 
-    if (!student || !course) {
+    if (!enrollment) {
       return NextResponse.json(
-        { error: "El alumno o el curso no pertenece a tu instituto" },
+        { error: "Asigná primero el alumno a este curso" },
         { status: 400 }
       );
     }
 
     const grade = await prisma.grade.create({
       data: {
-        studentId: student.id,
-        courseId: course.id,
+        studentId: enrollment.studentId,
+        courseId: enrollment.courseId,
         tenantId: tenant.id,
         value: body.value,
       },

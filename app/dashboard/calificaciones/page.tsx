@@ -58,42 +58,23 @@ export default function CalificacionesPage() {
     const controller = new AbortController();
 
     async function loadFormOptions() {
-      const [courseResult, studentResult] = await Promise.allSettled([
-        fetch("/api/courses", { signal: controller.signal }),
-        fetch("/api/students", { signal: controller.signal }),
-      ]);
-      if (controller.signal.aborted) return;
-
-      let courseFailed = false;
-      let studentFailed = false;
-      if (courseResult.status === "fulfilled" && courseResult.value.ok) {
-        try {
-          const data: unknown = await courseResult.value.json();
-          if (Array.isArray(data)) setCourses(data as Course[]);
-          else courseFailed = true;
-        } catch {
-          courseFailed = true;
+      try {
+        const response = await fetch("/api/courses", {
+          signal: controller.signal,
+        });
+        if (!response.ok) throw new Error("No se pudieron cargar los cursos");
+        const data: unknown = await response.json();
+        if (!Array.isArray(data)) {
+          throw new Error("La respuesta de cursos no tiene el formato esperado");
         }
-      } else {
-        courseFailed = true;
+        setCourses(data as Course[]);
+      } catch {
+        if (controller.signal.aborted) return;
+        setCoursesFailed(true);
+        toast.error("No se pudieron cargar los cursos");
+      } finally {
+        if (!controller.signal.aborted) setLoadingCourses(false);
       }
-      if (studentResult.status === "fulfilled" && studentResult.value.ok) {
-        try {
-          const data: unknown = await studentResult.value.json();
-          if (Array.isArray(data)) setStudents(data as Student[]);
-          else studentFailed = true;
-        } catch {
-          studentFailed = true;
-        }
-      } else {
-        studentFailed = true;
-      }
-      if (courseFailed || studentFailed) {
-        setCoursesFailed(courseFailed);
-        setStudentsFailed(studentFailed);
-        toast.error("No se pudieron cargar los cursos o los alumnos");
-      }
-      setLoadingCourses(false);
     }
 
     void loadFormOptions();
@@ -105,28 +86,60 @@ export default function CalificacionesPage() {
 
     const controller = new AbortController();
 
-    async function loadGrades() {
-      try {
-        const params = new URLSearchParams({ courseId: selectedCourse });
-        const response = await fetch(`/api/grades?${params}`, {
+    async function loadGradesAndStudents() {
+      const params = new URLSearchParams({ courseId: selectedCourse });
+      const [gradesResult, studentsResult] = await Promise.allSettled([
+        fetch(`/api/grades?${params}`, { signal: controller.signal }),
+        fetch(`/api/courses/${selectedCourse}/students`, {
           signal: controller.signal,
-        });
-        if (!response.ok) throw new Error("No se pudieron cargar las notas");
-        const data: unknown = await response.json();
-        if (!Array.isArray(data)) {
-          throw new Error("La respuesta de notas no tiene el formato esperado");
+        }),
+      ]);
+      if (controller.signal.aborted) return;
+
+      let gradeLoadFailed = false;
+      let studentLoadFailed = false;
+      if (gradesResult.status === "fulfilled" && gradesResult.value.ok) {
+        try {
+          const data: unknown = await gradesResult.value.json();
+          if (Array.isArray(data)) setRows(data as GradeRow[]);
+          else gradeLoadFailed = true;
+        } catch {
+          gradeLoadFailed = true;
         }
-        setRows(data as GradeRow[]);
-      } catch {
-        if (controller.signal.aborted) return;
-        setGradesFailed(true);
-        toast.error("No se pudieron cargar las notas");
-      } finally {
-        if (!controller.signal.aborted) setLoadingGrades(false);
+      } else {
+        gradeLoadFailed = true;
       }
+      if (studentsResult.status === "fulfilled" && studentsResult.value.ok) {
+        try {
+          const data: unknown = await studentsResult.value.json();
+          if (
+            typeof data === "object" &&
+            data !== null &&
+            "enrolled" in data &&
+            Array.isArray(data.enrolled)
+          ) {
+            setStudents(
+              data.enrolled.map(
+                (enrollment: { student: Student }) => enrollment.student
+              )
+            );
+          } else {
+            studentLoadFailed = true;
+          }
+        } catch {
+          studentLoadFailed = true;
+        }
+      } else {
+        studentLoadFailed = true;
+      }
+      setGradesFailed(gradeLoadFailed);
+      setStudentsFailed(studentLoadFailed);
+      if (gradeLoadFailed) toast.error("No se pudieron cargar las notas");
+      if (studentLoadFailed) toast.error("No se pudieron cargar los alumnos del curso");
+      setLoadingGrades(false);
     }
 
-    void loadGrades();
+    void loadGradesAndStudents();
     return () => controller.abort();
   }, [selectedCourse]);
 
@@ -231,6 +244,8 @@ export default function CalificacionesPage() {
                 resetForm();
                 setRows([]);
                 setGradesFailed(false);
+                setStudents([]);
+                setStudentsFailed(false);
                 setLoadingGrades(event.target.value !== "");
                 setSelectedCourse(event.target.value);
               }}
