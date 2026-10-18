@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   BookOpen,
+  CalendarCheck,
   ClipboardList,
   GraduationCap,
   Home,
@@ -15,6 +16,7 @@ const items = [
   { href: "/dashboard/courses", label: "Cursos", icon: BookOpen },
   { href: "/dashboard/students", label: "Alumnos", icon: Users },
   { href: "/dashboard/calificaciones", label: "Notas", icon: ClipboardList },
+  { href: "/dashboard/attendances", label: "Asistencia", icon: CalendarCheck },
 ];
 
 function isActivePath(pathname: string, href: string) {

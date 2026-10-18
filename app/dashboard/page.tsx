@@ -7,6 +7,7 @@ import {
   Activity,
   ArrowRight,
   BookOpen,
+  CalendarCheck,
   CalendarDays,
   CheckCircle2,
   ClipboardList,
@@ -389,6 +390,12 @@ export default function DashboardPage() {
               href="/dashboard/students"
               icon={Users}
               title="Administrar alumnos"
+            />
+            <QuickLink
+              description="Registrá presentes y ausentes por curso"
+              href="/dashboard/attendances"
+              icon={CalendarCheck}
+              title="Administrar asistencias"
             />
             <div className="rounded-xl bg-slate-50 px-4 py-3">
               <p className="text-xs font-medium text-slate-600">

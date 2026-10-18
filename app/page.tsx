@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { GraduationCap, Users, BookOpen, BarChart3, Shield, Zap } from "lucide-react";
+import { GraduationCap, Users, BookOpen, BarChart3, Zap } from "lucide-react";
+import { SiteFooter } from "@/components/site-footer";
 
 export default function Home() {
   return (
@@ -79,9 +80,7 @@ export default function Home() {
         </div>
       </main>
 
-      <footer className="border-t py-8 text-center text-sm text-slate-500">
-        AulaBase • PWA instalable • Hecho con Next.js + shadcn/ui
-      </footer>
+      <SiteFooter />
     </div>
   )
 }
