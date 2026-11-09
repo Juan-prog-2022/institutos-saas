@@ -1,18 +1,38 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentTenant } from "@/lib/tenant";
+import { auth, currentUser } from "@clerk/nextjs/server";
+import { isSuperAdmin } from "@/lib/auth";
 
 export async function GET(request: Request) {
   try {
-    const tenant = await getCurrentTenant();
+    const { orgId } = await auth();
+    const user = await currentUser();
+    const superAdmin = isSuperAdmin(user?.emailAddresses[0]?.emailAddress ?? "");
+
+    if (!orgId &&  !superAdmin) return NextResponse.json([]);
+
+    let tenantId: string | undefined;
+    if(!superAdmin) {
+      const tenant = await prisma.tenant.findUnique({
+        where: {clerkOrgId: orgId!},
+        select: {id: true}
+      });
+      if(!tenant) return NextResponse.json([]);
+      tenantId = tenant.id;
+    }
+
+
     const url = new URL(request.url);
     const courseId = url.searchParams.get("courseId");
     const date = url.searchParams.get("date");
     const where: {
-      tenantId: string;
+      tenantId?: string;
       courseId?: string;
       date?: { gte: Date; lt: Date };
-    } = { tenantId: tenant.id };
+    } = {};
+
+    if(tenantId) where.tenantId = tenantId;
 
     if (courseId) where.courseId = courseId;
     if (date) {
